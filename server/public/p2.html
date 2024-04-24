@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>Index Page!</h1>
+    <div class="container">
+      <div id="post-div">
+        <h2>Posts</h2>
+      </div>
+
+      <input type="text" id="title" />
+      <input type="text" id="body" />
+      <button id="sendBtn">Send</button>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io();
+      let username = "Ocitti";
+      socket.auth = { username };
+      const postDiv = document.getElementById("post-div");
+      const sendBtn = document.getElementById("sendBtn");
+
+      const post = {
+        title: "How to work with socket io",
+        body: "Please make all the necessary environment installations",
+      };
+      let roomId = "65faef15f6903a53d3a10f40";
+      //   socket.emit("join", roomId);
+
+      sendBtn.addEventListener("click", function (e) {
+        console.log("clicked!");
+
+        socket.emit(
+          "postMessage",
+          "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NWZhN2IwM2RjYWIwZDM0OWY2N2NlOGYiLCJuYW1lIjoiSXZhbiIsImlhdCI6MTcxMDkxNTMxNiwiZXhwIjoxNzEzNTA3MzE2fQ.cM8gHlUuKo3bHy65xo6m3Aovncmx2nmEHfmSk1WnPwI",
+          post,
+          roomId
+        );
+      });
+
+      socket.on("post", (result, id) => {
+        console.log(result);
+        console.log(id);
+      });
+    </script>
+  </body>
+</html>

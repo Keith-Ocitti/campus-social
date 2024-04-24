@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>Index Page!</h1>
+    <div class="container">
+      <div id="post-div">
+        <h2>Posts</h2>
+      </div>
+
+      <input type="text" id="title" />
+      <input type="text" id="body" />
+      <button id="sendBtn">Send</button>
+    </div>
+    <div>
+      <input type="text" id="username" />
+      <input type="text" id="user-id" />
+      <button id="Register">Register</button>
+    </div>
+    <div id="userDiv">
+      <h2>Users</h2>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io({ autoConnect: false });
+
+      const postDiv = document.getElementById("post-div");
+      const sendBtn = document.getElementById("sendBtn");
+      const user = document.getElementById("username");
+      const Register = document.getElementById("Register");
+      const userDiv = document.getElementById("userDiv");
+      const userId = document.getElementById("user-id");
+      const message = document.getElementById("title");
+      const to = document.getElementById("body");
+
+      Register.addEventListener("click", function () {
+        let username = user.value;
+        userid = userId.value;
+        socket.auth = { username, userid };
+        socket.connect();
+      });
+
+      const post = {
+        title: "How to work with socket io",
+        body: "Please make all the necessary environment installations",
+      };
+      let roomId = "65faef15f6903a53d3a10f40";
+
+      sendBtn.addEventListener("click", function (e) {
+        sendMsg(message.value, userId.value, to.value);
+      });
+
+      socket.on("post", (result, id) => {
+        console.log(result);
+        console.log(id);
+      });
+
+      function sendMsg(msg, from, to) {
+        socket.emit("direct-message", { msg, to, from });
+      }
+
+      socket.on("direct-message", (msg) => {
+        console.log(msg);
+      });
+
+      socket.on("users", (users) => {
+        users.forEach((user) => {
+          user.self = user.userID === socket.id;
+        });
+        // put the current user first, and then sort by username
+        this.users = users.sort((a, b) => {
+          if (a.self) return -1;
+          if (b.self) return 1;
+          if (a.username < b.username) return -1;
+          return a.username > b.username ? 1 : 0;
+        });
+        this.users.forEach((user) => {
+          let userElement = document.createElement("div");
+          userElement.innerHTML = `<h3>${user.username}</h3>`;
+          userDiv.appendChild(userElement);
+        });
+      });
+    </script>
+  </body>
+</html>
