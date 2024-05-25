@@ -8,7 +8,10 @@ const Message = require("../models/Message");
 const Clients = require("../models/Clients");
 
 const getTherapists = async (req, res) => {
-  const { userId } = req.user;
+  console.log("Thera server has been hit");
+  const { id } = req.params;
+  const userId = id;
+  console.log(userId);
   try {
     let therapists = await User.find({ post: "therapist" });
     let allMessages = await Message.find();
@@ -28,23 +31,25 @@ const getTherapists = async (req, res) => {
     res.send(result);
   } catch (error) {
     console.log(error);
+    return res.send(error);
   }
 };
 
 const getClients = async (req, res) => {
   try {
-    const { userId } = req.user;
-    console.log({ userId });
+    console.log("Client server has been hit");
+    const { id } = req.params;
+    const userId = id;
+    console.log(userId);
+
     let allMessages = await Message.find();
     const clients = await Clients.find({ therapistId: userId });
-    if (clients.length < 1) {
-      res.send([]);
-    }
-
+    // if (clients.length < 1) {
+    //   res.send([]);
+    // }
+    console.log(clients);
     let count = 1;
     let result = clients.map((client) => {
-      // const clientData = await User.find({ _id: client.clientId });
-
       return {
         client: `Client ${count++}`,
         id: client.clientId,
@@ -60,7 +65,7 @@ const getClients = async (req, res) => {
     res.send(result);
   } catch (error) {
     console.log(error);
-    res.send(error);
+    return;
   }
 };
 
@@ -76,7 +81,7 @@ const makePost = async (req, res, next) => {
 
     res.status(201).send(post);
   } catch (error) {
-    console.log(error);
+    return console.log(error);
   }
 };
 
@@ -95,7 +100,7 @@ const getPosts = async (req, res) => {
     res.status(200).send(finalPosts);
   } catch (error) {
     console.log(error);
-    res.send(error);
+    return;
   }
 };
 
@@ -112,6 +117,7 @@ const makeComment = async (req, res, next) => {
   } catch (error) {
     res.send(error);
     console.log(error);
+    return;
   }
 };
 
@@ -123,18 +129,19 @@ const getComments = async (req, res, next) => {
   } catch (error) {
     console.log(error);
     res.send(error);
+    return;
   }
 };
 
 const createResource = async (req, res, next) => {
   try {
-    const { userId } = req.user;
-    const { title, body } = req.body;
+    const { title, body, userId } = req.body;
 
     await Resource.create({ title, body, createdBy: userId });
     res.status(201).send("successful");
   } catch (error) {
     console.log(error);
+    return;
   }
 };
 
@@ -145,15 +152,15 @@ const getResource = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.send(error);
+    return;
   }
 };
 
 const postEvents = async (req, res, next) => {
   try {
     console.log("Server has been hit!");
-    const { userId } = req.user;
-    const { title, description, location, date, activityTime } = req.body;
-    console.log(req.body);
+    const { title, description, location, date, activityTime, userId } =
+      req.body;
     const event = await Event.create({
       title,
       description,
@@ -165,6 +172,7 @@ const postEvents = async (req, res, next) => {
     res.status(201).send(event);
   } catch (error) {
     console.log(error);
+    return;
   }
 };
 
@@ -173,8 +181,7 @@ const getEvents = async (req, res) => {
     const events = await Event.find();
     res.status(200).send(events);
   } catch (error) {
-    console.log(error);
-    res.send(error);
+    return console.log(error);
   }
 };
 

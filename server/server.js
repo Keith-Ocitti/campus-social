@@ -13,6 +13,8 @@ const Post = require("./models/Posts");
 const Message = require("./models/Message");
 const Comment = require("./models/Comments");
 const Clients = require("./models/Clients");
+const Event = require("./models/Events");
+const Resource = require("./models/Resource");
 
 const server = http.createServer(app);
 const port = 5000;
@@ -22,15 +24,14 @@ const io = new Server(server, {
   },
 });
 const cors = require("cors");
-const { log } = require("console");
 
 // middleware
 app.use(cors());
 app.use(express.json());
-// app.use(session);
 app.use("/api/v1", authRoutes);
-app.use("/api/v1", authentication, activityRoutes);
+app.use("/api/v1", activityRoutes);
 
+// connect user and join chat room
 io.use((socket, next) => {
   const username = socket.handshake.auth.username;
   const id = socket.handshake.auth.userId;
@@ -42,8 +43,9 @@ io.use((socket, next) => {
 });
 
 io.on("connection", (socket) => {
+  // make a post
   socket.on("postMessage", async (data, callback) => {
-    // console.log("server has been hit");
+    console.log("server has been hit");
     const { token, body } = data;
 
     let payload = await Decoder(token);
@@ -58,6 +60,7 @@ io.on("connection", (socket) => {
     io.to(roomId).emit("post", result, socket.id);
   });
 
+  // make a comment
   socket.on("comment", async (data, callback) => {
     roomId = "65faef15f6903a53d3a10f40";
     const { postId, body, token } = data;
@@ -72,6 +75,7 @@ io.on("connection", (socket) => {
     io.to(roomId).emit("comment", comment);
   });
 
+  // message therapist
   socket.on("client-message", async (data, callback) => {
     const { body, to, token } = data;
     let payload = await Decoder(token);
@@ -89,6 +93,7 @@ io.on("connection", (socket) => {
     }
   });
 
+  // message client
   socket.on("therapist-message", async (data, callback) => {
     const { body, to, token } = data;
     let payload = await Decoder(token);
@@ -97,6 +102,35 @@ io.on("connection", (socket) => {
     let newMsg = { msg, also: userId };
     if (msg) {
       io.to(to).to(userId).emit("message", newMsg);
+      callback("got it");
+    }
+  });
+
+  // add event
+  socket.on("event", async (data, callback) => {
+    const { title, description, location, date, activityTime, userId } = data;
+    const event = await Event.create({
+      title,
+      description,
+      location,
+      createdBy: userId,
+      date,
+      activityTime,
+    });
+    let newEvent = event;
+    if (newEvent) {
+      io.to(userId).emit("newEvent", newEvent);
+      callback("got it");
+    }
+  });
+
+  // add an article
+  socket.on("resource", async (data, callback) => {
+    const { title, body, userId } = data;
+    const resource = await Resource.create({ title, body, createdBy: userId });
+    let newResource = resource;
+    if (newResource) {
+      io.to(userId).emit("newResource", newResource);
       callback("got it");
     }
   });

@@ -16,7 +16,7 @@ const login = async (req, res) => {
 
     const isPasswordCorrect = await user.comparePassword(password);
     if (!isPasswordCorrect) {
-      throw new Unauthenticated("Invalid credentials, try again");
+      return new Unauthenticated("Invalid credentials, try again");
     }
 
     const token = user.createJWT();
@@ -27,6 +27,7 @@ const login = async (req, res) => {
     // send back user data with token
   } catch (error) {
     console.log(error);
+    return res.send(error);
   }
 };
 
@@ -38,6 +39,7 @@ const register = async (req, res) => {
     res.status(201).json({ user });
   } catch (error) {
     console.log(error);
+    return res.send(error);
   }
 };
 module.exports = { login, register };
